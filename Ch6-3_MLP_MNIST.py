@@ -213,7 +213,7 @@ for epoch in range(1000):
         # 순전파 계산
         output = model(train_x)
         # 오차 계산
-        loss = criterion(output, train_y)
+        loss = criterion(output, train_y)/
         # 역전파 계산
         loss.backward()
         # 가중치 업데이트
