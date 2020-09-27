@@ -53,27 +53,33 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 # In[7]:
 
 
+device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+
+# In[8]:
+
+
 # MNIST 데이터를 읽어 들인 다음, 화면에 출력
 mnist = datasets.fetch_openml('mnist_784', data_home="./data", version=1, cache=True)
 
 #mnist
 
 
-# In[8]:
+# In[9]:
 
 
 # 설명변수를 정규화하고 변수에 대입하고 화면에 출력
 mnist_data = mnist.data / 255
 
 
-# In[9]:
+# In[10]:
 
 
 # 데이터프레임 객체로 변환하고 화면에 출력
 pd.DataFrame(mnist_data)
 
 
-# In[10]:
+# In[11]:
 
 
 # 1번째 이미지를 화면에 출력
@@ -81,7 +87,7 @@ plt.imshow(mnist_data[0].reshape(28, 28), cmap=cm.gray_r)
 plt.show()
 
 
-# In[11]:
+# In[12]:
 
 
 # 목적변수를 변수에 할당하고 데이터를 화면에 출력
@@ -89,7 +95,7 @@ mnist_label = mnist.target
 mnist_label
 
 
-# In[12]:
+# In[13]:
 
 
 # 훈련 데이터 건수
@@ -99,7 +105,7 @@ train_size = 5000
 test_size = 500
 
 
-# In[13]:
+# In[14]:
 
 
 # 데이터 집합을 훈련 데이터와 테스트 데이터로 분할
@@ -107,7 +113,7 @@ train_X, test_X, train_Y, test_Y = model_selection.train_test_split(
     mnist_data, mnist_label, train_size=train_size,test_size=test_size)
 
 
-# In[14]:
+# In[15]:
 
 
 # 훈련 데이터 텐서 변환
@@ -115,7 +121,7 @@ train_X = torch.tensor(train_X, dtype=torch.float) / 255
 train_Y = torch.tensor([int(x) for x in train_Y])
 
 
-# In[15]:
+# In[16]:
 
 
 # 테스트 데이터 텐서 변환
@@ -123,7 +129,16 @@ test_X = torch.tensor(test_X, dtype=torch.float) / 255
 test_Y = torch.tensor([int(x) for x in test_Y])
 
 
-# In[16]:
+# In[17]:
+
+
+train_X = train_X.to(device)
+train_Y = train_Y.to(device)
+test_X = test_X.to(device)
+test_Y = test_Y.to(device)
+
+
+# In[18]:
 
 
 # 변환된 텐서의 데이터 건수 확인
@@ -131,28 +146,28 @@ print(train_X.shape)
 print(train_Y.shape)
 
 
-# In[17]:
+# In[19]:
 
 
 # 설명변수와 목적변수 텐서를 합침
 train = TensorDataset(train_X, train_Y)
 
 
-# In[18]:
+# In[20]:
 
 
 # 텐서의 첫 번째 데이터를 확인
 # print(train[0])
 
 
-# In[19]:
+# In[21]:
 
 
 # 미니배치 분할
 train_loader = DataLoader(train, batch_size=100, shuffle=True)
 
 
-# In[20]:
+# In[22]:
 
 
 # 신경망 구성
@@ -177,28 +192,28 @@ class Net(nn.Module):
         return F.log_softmax(x)
 
 
-# In[21]:
+# In[23]:
 
 
 # 인스턴트 생성
-model = Net()
+model = Net().to(device)
 
 
-# In[22]:
+# In[24]:
 
 
 # 오차함수 객체
 criterion = nn.CrossEntropyLoss()
 
 
-# In[23]:
+# In[25]:
 
 
 # 최적화를 담당할 객체 
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
 
-# In[ ]:
+# In[26]:
 
 
 # 학습 시작
@@ -213,7 +228,7 @@ for epoch in range(1000):
         # 순전파 계산
         output = model(train_x)
         # 오차 계산
-        loss = criterion(output, train_y)/
+        loss = criterion(output, train_y)
         # 역전파 계산
         loss.backward()
         # 가중치 업데이트
@@ -225,28 +240,28 @@ for epoch in range(1000):
         print(epoch + 1, total_loss)
 
 
-# In[ ]:
+# In[27]:
 
 
 # 계산 그래프 구성
-test_x = test_y = Variable(test_X), Varialbe(test_Y)
+test_x, test_y = Variable(test_X), Variable(test_Y).to("cpu")
 
 
-# In[ ]:
+# In[28]:
 
 
 # 출력이 0 또는 1이 되게 함
 result = torch.max(model(test_x).data, 1)[1]
 
 
-# In[ ]:
+# In[29]:
 
 
 # 모형의 정확도 측정
-acc = sum(test_y.data.numpy() == result.numpy() / len(test_y.data.numpy()))
+acc = sum(test_y.data.numpy() == result.to("cpu").numpy()) / len(test_y.data.numpy())
 
 
-# In[ ]:
+# In[30]:
 
 
 # 모형의 정확도 출력
